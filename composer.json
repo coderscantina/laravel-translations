@@ -1,0 +1,56 @@
+{
+    "name": "coderscantina/laravel-translations",
+    "type": "library",
+    "description": "Database driven translation for your Laravel application.",
+    "keywords": [
+        "translations",
+        "laravel"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michael Wallner",
+            "email": "m.wallner@badsoft.net"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "illuminate/database": "^7.0||^8.0||^9.0||^10.0",
+        "illuminate/support": "^7.0||^8.0||^9.0||^10.0"
+    },
+    "require-dev": {
+        "doctrine/dbal": "^3.6",
+        "graham-campbell/testbench": "^5.7",
+        "mockery/mockery": "^1.4",
+        "phpunit/phpunit": "^9.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "CodersCantina\\Translations\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CodersCantina\\Translations\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        },
+        "laravel": {
+            "providers": [
+                "CodersCantina\\Translations\\ServiceProvider"
+            ],
+            "aliases": {
+                "Translation": "CodersCantina\\Translations\\Facades\\Translation"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    }
+}
