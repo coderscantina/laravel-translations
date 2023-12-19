@@ -46,7 +46,7 @@ class Translator extends BaseTranslator
         return parent::parseKey($key);
     }
 
-    protected function makeReplacements($translation, array $replacements)
+    public function makeReplacements($translation, array $replacements)
     {
         return preg_replace_callback(
             config('translations.replaceRegex'),
