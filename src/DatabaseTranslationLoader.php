@@ -2,6 +2,7 @@
 
 namespace CodersCantina\Translations;
 
+use DB;
 use Illuminate\Contracts\Translation\Loader;
 use Illuminate\Support\Collection;
 
@@ -11,13 +12,14 @@ class DatabaseTranslationLoader implements Loader
 
     protected array $fallbacks;
 
-    protected string $class;
+    protected string $table;
 
     public function __construct(string $defaultLocale, array $fallbacks)
     {
         $this->defaultLocale = $defaultLocale;
         $this->fallbacks = $fallbacks;
-        $this->class = config('translations.model', Translation::class);
+        $cls = config('translations.model', Translation::class);
+        $this->table = (new $cls)->getTable();
     }
 
     /** @inheritDoc */
@@ -55,27 +57,28 @@ class DatabaseTranslationLoader implements Loader
             ->reduce(fn($a, $b) => $a + $b, []);
 
         return collect($strings)
-            ->mapWithKeys(fn(array $item) => [$this->translationKey($item) => $item['value']])
+            ->mapWithKeys(fn($item) => [$this->translationKey($item) => $item->value])
             ->toArray();
     }
 
     protected function fetchTranslationsForLocale(string $locale): array
     {
-        return $this->class::where('language_iso', $locale)
+        return DB::table($this->table)
+            ->where('language_iso', $locale)
             ->get(['namespace', 'key', 'value'])
-            ->map(fn($item) => $item->toArray())
-            ->keyBy(fn(array $item) => $this->translationKey($item))
+            ->keyBy(fn($item) => $this->translationKey($item))
             ->toArray();
     }
 
     protected function fetchTranslationsByKey(?string $namespace, string $key, string $locale = null): array
     {
-        $query = $this->class::where(
-            function ($query) use ($key) {
-                $query->where('key', $key)
-                    ->orWhere('key', 'LIKE', "$key.%");
-            }
-        )->where('namespace', $namespace);
+        $query = DB::table($this->table)
+            ->where(
+                function ($query) use ($key) {
+                    $query->where('key', $key)
+                        ->orWhere('key', 'LIKE', "$key.%");
+                }
+            )->where('namespace', $namespace);
 
         if ($locale) {
             $query->where('language_iso', $locale);
@@ -96,12 +99,12 @@ class DatabaseTranslationLoader implements Loader
         return collect([$targetLocale, ...array_reverse($fallbacks)]);
     }
 
-    protected function translationKey(array $item): string
+    protected function translationKey($item): string
     {
-        if ($item['namespace'] && $item['namespace'] != '*') {
-            return $item['namespace'] . '::' . $item['key'];
+        if ($item->namespace && $item->namespace != '*') {
+            return $item->namespace . '::' . $item->key;
         }
 
-        return $item['key'];
+        return $item->key;
     }
 }
