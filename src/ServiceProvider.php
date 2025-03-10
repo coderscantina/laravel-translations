@@ -1,7 +1,7 @@
 <?php namespace CodersCantina\Translations;
 
-use Illuminate\Translation\TranslationServiceProvider;
 use CodersCantina\Translations\Commands\AddTranslation;
+use Illuminate\Translation\TranslationServiceProvider;
 
 class ServiceProvider extends TranslationServiceProvider
 {
@@ -9,27 +9,62 @@ class ServiceProvider extends TranslationServiceProvider
 
     public function boot()
     {
-        $this->loadMigrationsFrom(__DIR__.'/../migrations/');
+        $this->loadMigrationsFrom(__DIR__ . '/../migrations/');
+
+        $this->publishes([
+            __DIR__ . '/../config/translations.php' => config_path('translations.php'),
+        ], 'config');
     }
+
 
     public function register()
     {
+        $this->registerCommands();
+        $this->registerConfig();
+        $this->registerTranslator();
+    }
+
+    /**
+     * Register the commands.
+     *
+     * @return void
+     */
+    protected function registerCommands()
+    {
         $this->commands([
-            AddTranslation::class
+            Commands\AddTranslation::class
         ]);
+    }
 
+    /**
+     * Register the configuration.
+     *
+     * @return void
+     */
+    protected function registerConfig()
+    {
         $this->mergeConfigFrom(__DIR__ . '/../config/translations.php', 'translations');
+    }
 
+    /**
+     * Register the translator.
+     *
+     * @return void
+     */
+    protected function registerTranslator()
+    {
         $this->app->singleton('translator', function ($app) {
-            // When registering the translator component, we'll need to set the default
-            // locale as well as the fallback locale. So, we'll grab the application
-            // configuration so we can easily get both of these values from there.
             $locale = $app['config']['app.locale'];
             $fallback = $app['config']['app.fallback_locale'];
+            $cacheDuration = $app['config']['translations.cache_duration'] ?? 3600;
 
-            $loader = new DatabaseTranslationLoader($locale, explode(',', $fallback));
+            $loader = new DatabaseTranslationLoader(
+                $locale,
+                explode(',', $fallback),
+                $cacheDuration
+            );
+
             $trans = new Translator($loader, $locale);
-
             $trans->setFallback($fallback);
 
             return $trans;

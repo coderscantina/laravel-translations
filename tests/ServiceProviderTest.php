@@ -8,4 +8,11 @@ class ServiceProviderTest extends TestCase
         $trans = $this->app->make('translator');
         $this->assertTrue($trans instanceof Translator);
     }
+
+    /** @test */
+    public function it_registers_the_config()
+    {
+        $this->assertNotNull(config('translations'));
+        $this->assertNotNull(config('translations.replaceRegex'));
+    }
 }
